@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% block title %}سجل طلبات التعديل — CRM{% endblock %}
+{% block page_title %}📋 سجل طلبات التعديل{% endblock %}
+
+{% block content %}
+
+{# ── Stats Cards ── #}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">📋</div>
+    <div>
+      <div class="stat-value">{{ total_count }}</div>
+      <div class="stat-label">إجمالي الطلبات</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange">⏳</div>
+    <div>
+      <div class="stat-value">{{ pending_count }}</div>
+      <div class="stat-label">قيد الانتظار</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-value">{{ approved_count }}</div>
+      <div class="stat-label">تمت الموافقة</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">❌</div>
+    <div>
+      <div class="stat-value">{{ rejected_count }}</div>
+      <div class="stat-label">مرفوض</div>
+    </div>
+  </div>
+</div>
+
+{# ── Search & Filter Bar ── #}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-body" style="padding:20px 24px;">
+    <form method="get" action="{% url 'edit_requests_log' %}" id="log-filter-form">
+      <div class="log-filter-row">
+
+        {# Search input #}
+        <div class="search-input-wrap" style="flex:2;">
+          <span class="search-icon">🔍</span>
+          <input type="text"
+                 name="q"
+                 class="search-input"
+                 placeholder="بحث باسم العميل أو اسم السيلز..."
+                 value="{{ query }}"
+                 id="log-search-input">
+        </div>
+
+        {# Sales filter #}
+        <div style="flex:1;">
+          <select name="sales" class="form-control" id="log-sales-filter" onchange="this.form.submit()">
+            <option value="">— كل السيلز —</option>
+            {% for user in sales_users %}
+              <option value="{{ user.id }}" {% if sales_filter == user.id|stringformat:"d" %}selected{% endif %}>
+                {{ user.get_full_name|default:user.username }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {# Status filter #}
+        <div style="flex:1;">
+          <select name="status" class="form-control" id="log-status-filter" onchange="this.form.submit()">
+            <option value="">— كل الحالات —</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>⏳ قيد الانتظار</option>
+            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>✅ تمت الموافقة</option>
+            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>❌ مرفوض</option>
+          </select>
+        </div>
+
+        {# Buttons #}
+        <button type="submit" class="btn btn-primary btn-sm">🔍 بحث</button>
+        {% if query or status_filter or sales_filter %}
+          <a href="{% url 'edit_requests_log' %}" class="btn btn-outline btn-sm">✖ مسح الفلاتر</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Active Filters Summary ── #}
+{% if query or status_filter or sales_filter %}
+<div class="active-filters-bar">
+  <span class="active-filters-label">🏷️ الفلاتر النشطة:</span>
+  {% if query %}
+    <span class="filter-tag">بحث: "{{ query }}"</span>
+  {% endif %}
+  {% if sales_filter %}
+    {% for user in sales_users %}
+      {% if user.id|stringformat:"d" == sales_filter %}
+        <span class="filter-tag">سيلز: {{ user.get_full_name|default:user.username }}</span>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if status_filter %}
+    <span class="filter-tag">الحالة:
+      {% if status_filter == 'pending' %}قيد الانتظار
+      {% elif status_filter == 'approved' %}تمت الموافقة
+      {% else %}مرفوض{% endif %}
+    </span>
+  {% endif %}
+  <span style="color:var(--text-light);font-size:13px;margin-right:8px;">
+    ({{ edit_requests|length }} نتيجة)
+  </span>
+</div>
+{% endif %}
+
+{# ── Requests Table ── #}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">سجل جميع طلبات التعديل</span>
+    <a href="{% url 'leader_dashboard' %}" class="btn btn-outline btn-sm">← لوحة التحكم</a>
+  </div>
+  <div class="card-body" style="padding:0;">
+    {% if edit_requests %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>مقدم الطلب (السيلز)</th>
+              <th>العميل</th>
+              <th>تاريخ الطلب</th>
+              <th>السبب</th>
+              <th>الحالة</th>
+              <th>تمت المراجعة بواسطة</th>
+              <th>تاريخ المراجعة</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in edit_requests %}
+            <tr class="log-row log-row-{{ req.status }}">
+              <td>
+                <span class="log-id">#{{ req.id }}</span>
+              </td>
+              <td>
+                <div class="log-user-cell">
+                  <div class="log-user-avatar">{{ req.requested_by.username|first|upper }}</div>
+                  <div>
+                    <div class="log-user-name">{{ req.requested_by.get_full_name|default:req.requested_by.username }}</div>
+                    <!-- <div class="log-user-username">@{{ req.requested_by.username }}</div> -->
+                  </div>
+                </div>
+              </td>
+              <td>
+                <strong>{{ req.client_name }}</strong><br>
+                <!-- <small style="color:#64748b;">ID: {{ req.client_id }}</small> -->
+              </td>
+              <td>
+                <div style="white-space:nowrap;">{{ req.created_at|date:"Y-m-d" }}</div>
+                <small style="color:#64748b;">{{ req.created_at|date:"H:i" }}</small>
+              </td>
+              <td>
+                {% if req.reason %}
+                  <div style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ req.reason }}">
+                    {{ req.reason|truncatewords:8 }}
+                  </div>
+                {% else %}
+                  <span style="color:#94a3b8;">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if req.status == 'pending' %}
+                  <span class="badge badge-warning">⏳ قيد الانتظار</span>
+                {% elif req.status == 'approved' %}
+                  <span class="badge badge-success">✅ تمت الموافقة</span>
+                {% else %}
+                  <span class="badge badge-danger">❌ مرفوض</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if req.reviewed_by %}
+                  {{ req.reviewed_by.get_full_name|default:req.reviewed_by.username }}
+                {% else %}
+                  <span style="color:#94a3b8;">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if req.reviewed_at %}
+                  <div style="white-space:nowrap;">{{ req.reviewed_at|date:"Y-m-d" }}</div>
+                  <small style="color:#64748b;">{{ req.reviewed_at|date:"H:i" }}</small>
+                {% else %}
+                  <span style="color:#94a3b8;">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <a href="{% url 'view_edit_request' req.id %}" class="btn btn-sm btn-outline">
+                    👁️ عرض
+                  </a>
+                  {% if req.status == 'pending' %}
+                    <form method="post" action="{% url 'approve_edit_request' req.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('هل أنت متأكد من الموافقة؟')">
+                        ✅
+                      </button>
+                    </form>
+                    <form method="post" action="{% url 'reject_edit_request' req.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من الرفض؟')">
+                        ❌
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>لا توجد طلبات تعديل</h3>
+        <p>{% if query or status_filter or sales_filter %}لا توجد نتائج تطابق معايير البحث الحالية{% else %}لم يتم إرسال أي طلبات تعديل حتى الآن{% endif %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}{{ owner_name }} — CRM{% endblock %}
+{% block page_title %}👤 {{ owner_name }}{% endblock %}
+
+{% block content %}
+
+{# Mini stats for this salesperson #}
+<div class="stats-grid" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon blue">👥</div>
+    <div>
+      <div class="stat-value">{{ total }}</div>
+      <div class="stat-label">Total Clients</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-value">{{ interested }}</div>
+      <div class="stat-label">Interested</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">❌</div>
+    <div>
+      <div class="stat-value">{{ not_interested }}</div>
+      <div class="stat-label">Not Interested</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange">📅</div>
+    <div>
+      <div class="stat-value">{{ scheduled }}</div>
+      <div class="stat-label">Scheduled</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">👥 Clients of {{ owner_name }}</span>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <a href="{% url 'leader_dashboard' %}" class="btn btn-outline btn-sm">← Back to Dashboard</a>
+      <form method="get" class="search-bar" style="margin:0;">
+        <div class="search-input-wrap" style="min-width:220px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" name="q" value="{{ query }}" class="search-input" placeholder="Search...">
+        </div>
+        <select name="status" class="form-control" style="width:auto;min-width:150px;">
+          <option value="">All Status</option>
+          <option value="Interested" {% if status_filter == 'Interested' %}selected{% endif %}>Interested</option>
+          <option value="Not interested" {% if status_filter == 'Not interested' %}selected{% endif %}>Not interested</option>
+          <option value="Scheduled a meeting" {% if status_filter == 'Scheduled a meeting' %}selected{% endif %}>Scheduled</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        {% if query or status_filter %}
+          <a href="{% url 'leader_salesperson' owner_name %}" class="btn btn-outline btn-sm">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    {% if clients %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Client Name</th>
+          <th>Project</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in clients %}
+        <tr>
+          <td style="color:var(--text-light);font-size:12px;">{{ forloop.counter }}</td>
+          <td><strong>{{ c.client_name|default:"—" }}</strong></td>
+          <td>{{ c.project_name|default:"—" }}</td>
+          <td>{{ c.phone_number|default:"—" }}</td>
+          <td style="font-size:12px;">{{ c.email_address|default:"—" }}</td>
+          <td>{{ c.location|default:"—" }}</td>
+          <td>
+            {% if c.status == 'Interested' %}
+              <span class="badge badge-success">✓ Interested</span>
+            {% elif c.status == 'Not interested' %}
+              <span class="badge badge-danger">✗ Not interested</span>
+            {% elif c.status == 'Scheduled a meeting' %}
+              <span class="badge badge-warning">📅 Scheduled</span>
+            {% else %}
+              <span class="badge badge-info">{{ c.status|default:"—" }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if c.type %}
+              <span class="badge {% if c.type == 'Internal' %}badge-info{% else %}badge-success{% endif %}">{{ c.type }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ c.date|date:"M d, Y"|default:"—" }}</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{% url 'edit_client' c.pk %}" class="btn btn-outline btn-sm">✏️</a>
+              <form method="post" action="{% url 'delete_client' c.pk %}" style="display:inline;" onsubmit="return confirm('Delete this client?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>No clients found</h3>
+        <p>{% if query or status_filter %}No results for your search.{% else %}This salesperson has no clients yet.{% endif %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

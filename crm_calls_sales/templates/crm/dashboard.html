@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — CRM{% endblock %}
+{% block page_title %}🏠 Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">👥</div>
+    <div>
+      <div class="stat-value">{{ total }}</div>
+      <div class="stat-label">Total Clients</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-value">{{ interested }}</div>
+      <div class="stat-label">Interested</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">❌</div>
+    <div>
+      <div class="stat-value">{{ not_interested }}</div>
+      <div class="stat-label">Not Interested</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange">📅</div>
+    <div>
+      <div class="stat-value">{{ scheduled }}</div>
+      <div class="stat-label">Scheduled</div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🕐 Recent Clients</span>
+      <a href="{% url 'clients' %}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    <div class="table-wrapper">
+      {% if recent_clients %}
+      <table>
+        <thead>
+          <tr><th>Client</th><th>Project</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for c in recent_clients %}
+          <tr>
+            <td><strong>{{ c.client_name|default:"—" }}</strong></td>
+            <td>{{ c.project_name|default:"—" }}</td>
+            <td>
+              {% if c.status == 'Interested' %}
+                <span class="badge badge-success">✓ Interested</span>
+              {% elif c.status == 'Not interested' %}
+                <span class="badge badge-danger">✗ Not interested</span>
+              {% elif c.status == 'Scheduled a meeting' %}
+                <span class="badge badge-warning">📅 Scheduled</span>
+              {% else %}
+                <span class="badge badge-info">{{ c.status|default:"—" }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No clients yet</h3>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📊 Top Projects</span>
+    </div>
+    <div class="card-body">
+      {% if project_stats %}
+        {% for project, count in project_stats %}
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:14px;font-weight:600;">{{ project }}</span>
+            <span style="font-size:13px;color:var(--text-mid);">{{ count }}</span>
+          </div>
+          <div style="height:8px;background:#eef2f7;border-radius:4px;overflow:hidden;">
+            <div style="height:100%;background:var(--primary-light);border-radius:4px;width:{% widthratio count total 100 %}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state"><div class="empty-icon">📈</div><h3>No data yet</h3></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

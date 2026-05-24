@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}تفاصيل طلب التعديل — CRM{% endblock %}
+{% block page_title %}📋 تفاصيل طلب التعديل{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:900px;margin:0 auto;">
+  <div class="card-header">
+    <span class="card-title">طلب تعديل: {{ edit_request.client_name }}</span>
+    {% if profile.is_sales_leader %}
+      <a href="{% url 'pending_edit_requests' %}" class="btn btn-outline btn-sm">← الطلبات المعلقة</a>
+    {% else %}
+      <a href="{% url 'my_edit_requests' %}" class="btn btn-outline" style="color: #000;font-size: 14px;">← طلباتي</a>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <!-- معلومات الطلب -->
+    <div style="background:#f0f9ff;border:2px solid #bfdbfe;border-radius:10px;padding:16px;margin-bottom:24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div>
+          <span style="font-size:12px;color:#64748b;">مقدم الطلب</span><br>
+          <strong>{{ edit_request.requested_by.get_full_name|default:edit_request.requested_by.username }}</strong>
+        </div>
+        <div>
+          <span style="font-size:12px;color:#64748b;">تاريخ الطلب</span><br>
+          <strong>{{ edit_request.created_at|date:"Y-m-d H:i" }}</strong>
+        </div>
+        <div>
+          <span style="font-size:12px;color:#64748b;">الحالة</span><br>
+          {% if edit_request.status == 'pending' %}
+            <span class="badge badge-warning">⏳ قيد الانتظار</span>
+          {% elif edit_request.status == 'approved' %}
+            <span class="badge badge-success">✅ تمت الموافقة</span>
+          {% else %}
+            <span class="badge badge-danger">❌ مرفوض</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- سبب التعديل -->
+    {% if edit_request.reason %}
+    <div style="background:#fef3c7;border:2px solid #fbbf24;border-radius:10px;padding:16px;margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:600;color:#92400e;margin-bottom:8px;">📝 سبب طلب التعديل</div>
+      <div style="color:#78350f;line-height:1.6;">{{ edit_request.reason }}</div>
+    </div>
+    {% endif %}
+
+    <!-- التغييرات المطلوبة -->
+    <div style="margin-bottom:24px;">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#0f172a;">🔄 التغييرات المطلوبة</h3>
+      
+      {% if changes %}
+        <div class="table-responsive">
+          <table class="table" style="font-size:14px;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th>الحقل</th>
+                <th>القيمة القديمة</th>
+                <th>القيمة الجديدة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for change in changes %}
+              <tr>
+                <td style="font-weight:600;color:#0f172a;">{{ change.field }}</td>
+                <td>
+                  <div style="background:#fee2e2;padding:8px;border-radius:6px;color:#7f1d1d;">
+                    {{ change.old_value }}
+                  </div>
+                </td>
+                <td>
+                  <div style="background:#dcfce7;padding:8px;border-radius:6px;color:#166534;">
+                    {{ change.new_value }}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center;padding:20px;color:#94a3b8;">
+          لا توجد تغييرات
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- تعليقات المراجعة (للطلبات المعالجة) -->
+    {% if edit_request.status != 'pending' %}
+    <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:10px;padding:16px;margin-bottom:24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+        <div>
+          <span style="font-size:12px;color:#64748b;">تمت المراجعة بواسطة</span><br>
+          <strong>{{ edit_request.reviewed_by.get_full_name|default:edit_request.reviewed_by.username }}</strong>
+        </div>
+        <div>
+          <span style="font-size:12px;color:#64748b;">تاريخ المراجعة</span><br>
+          <strong>{{ edit_request.reviewed_at|date:"Y-m-d H:i" }}</strong>
+        </div>
+      </div>
+      {% if edit_request.review_notes %}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #bbf7d0;">
+        <span style="font-size:12px;color:#64748b;">ملاحظات المراجعة</span><br>
+        <div style="color:#166534;margin-top:6px;">{{ edit_request.review_notes }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- أزرار الإجراءات (للـ Leader فقط والطلبات المعلقة) -->
+    {% if profile.is_sales_leader and edit_request.status == 'pending' %}
+    <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:20px;border-top:1px solid var(--border);">
+      <form method="post" action="" id="reviewForm" style="display:inline;width:100%;">
+        {% csrf_token %}
+        <textarea name="review_notes" placeholder="أضف ملاحظات (اختياري)" class="form-control" rows="2" style="margin-bottom:12px;"></textarea>
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+          <button type="submit" formaction="{% url 'reject_edit_request' edit_request.id %}" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من رفض هذا الطلب؟')">
+            ❌ رفض الطلب
+          </button>
+          <button type="submit" formaction="{% url 'approve_edit_request' edit_request.id %}" class="btn btn-success" onclick="return confirm('هل أنت متأكد من الموافقة على هذا الطلب؟')">
+            ✅ الموافقة على الطلب
+          </button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+    

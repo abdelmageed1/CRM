@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}طلبات التعديل الخاصة بي — CRM{% endblock %}
+{% block page_title %}📋 طلبات التعديل الخاصة بي{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">طلبات التعديل</span>
+    <a href="{% url 'clients' %}" class="btn btn-outline btn-sm">← العودة للعملاء</a>
+  </div>
+  <div class="card-body">
+    {% if edit_requests %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>العميل</th>
+              <th>تاريخ الطلب</th>
+              <th>الحالة</th>
+              <th>تمت المراجعة بواسطة</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for request in edit_requests %}
+            <tr>
+              <td>
+                <strong>{{ request.client_name }}</strong>
+              </td>
+              <td>{{ request.created_at|date:"Y-m-d H:i" }}</td>
+              <td>
+                {% if request.status == 'pending' %}
+                  <span class="badge badge-warning">⏳ قيد الانتظار</span>
+                {% elif request.status == 'approved' %}
+                  <span class="badge badge-success">✅ تمت الموافقة</span>
+                {% else %}
+                  <span class="badge badge-danger">❌ مرفوض</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if request.reviewed_by %}
+                  {{ request.reviewed_by.get_full_name|default:request.reviewed_by.username }}
+                  <br><small style="color:#64748b;">{{ request.reviewed_at|date:"Y-m-d H:i" }}</small>
+                {% else %}
+                  <span style="color:#94a3b8;">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'view_edit_request' request.id %}" class="btn btn-sm btn-outline">
+                  👁️ عرض التفاصيل
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align:center;padding:60px 20px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:16px;">📭</div>
+        <div style="font-size:16px;font-weight:500;margin-bottom:8px;">لا توجد طلبات تعديل</div>
+        <div style="font-size:14px;">لم تقم بإرسال أي طلبات تعديل حتى الآن</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

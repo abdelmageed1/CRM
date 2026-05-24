@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Leader Dashboard — CRM{% endblock %}
+{% block page_title %}👑 Leader Dashboard{% endblock %}
+
+{% block content %}
+
+{# ── Team totals ── #}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">👥</div>
+    <div>
+      <div class="stat-value">{{ team_total }}</div>
+      <div class="stat-label">Total Clients (Team)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-value">{{ team_interested }}</div>
+      <div class="stat-label">Interested</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">❌</div>
+    <div>
+      <div class="stat-value">{{ team_not_interested }}</div>
+      <div class="stat-label">Not Interested</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange">📅</div>
+    <div>
+      <div class="stat-value">{{ team_scheduled }}</div>
+      <div class="stat-label">Scheduled</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">⏳</div>
+    <div>
+      <div class="stat-value">{{ pending_requests_count }}</div>
+      <div class="stat-label">Pending Requests</div>
+    </div>
+  </div>
+</div>
+
+{# ── Quick Actions ── #}
+{% if pending_requests_count > 0 %}
+<div style="background:#fef3c7;border:2px solid #fbbf24;border-radius:10px;padding:16px;margin:24px 0;display:flex;align-items:center;justify-content:space-between;">
+  <div>
+    <div style="font-size:14px;font-weight:600;color:#92400e;">⏳ لديك {{ pending_requests_count }} طلب تعديل معلق</div>
+    <div style="font-size:13px;color:#78350f;margin-top:4px;">يحتاج إلى موافقتك</div>
+  </div>
+  <a href="{% url 'pending_edit_requests' %}" class="btn btn-accent" style="background-color:#b45309; border-color:#b45309; color:white;">عرض الطلبات</a>
+</div>
+{% endif %}
+
+{# ── Per-salesperson breakdown ── #}
+<div class="card" style="margin-top:24px;">
+  <div class="card-header">
+    <span class="card-title">📊 Sales Team Progress</span>
+    <a href="{% url 'clients' %}" class="btn btn-outline btn-sm">View All Clients</a>
+  </div>
+
+  {% if sales_stats %}
+  <div style="padding:0 24px 24px;">
+    {% for s in sales_stats %}
+    <div class="salesperson-card">
+      {# Avatar + name #}
+      <div class="sp-header">
+        <div class="sp-avatar">{{ s.owner|first|upper }}</div>
+        <div>
+          <div class="sp-name">{{ s.owner }}</div>
+          <div class="sp-total">{{ s.total }} client{{ s.total|pluralize }}</div>
+        </div>
+        <a href="{% url 'leader_salesperson' s.owner %}" class="btn btn-outline btn-sm" style="margin-left:auto;">
+          👁 View Clients
+        </a>
+      </div>
+
+      {# Stat pills #}
+      <div class="sp-pills">
+        <span class="sp-pill pill-green">✅ Interested: {{ s.interested }}</span>
+        <span class="sp-pill pill-red">❌ Not interested: {{ s.not_interested }}</span>
+        <span class="sp-pill pill-orange">📅 Scheduled: {{ s.scheduled }}</span>
+      </div>
+
+      {# Progress bars #}
+      {% if s.total > 0 %}
+      <div class="sp-bars">
+        <div class="sp-bar-row">
+          <span class="sp-bar-label">Interested</span>
+          <div class="sp-bar-track">
+            <div class="sp-bar-fill fill-green" style="width:{% widthratio s.interested s.total 100 %}%"></div>
+          </div>
+          <span class="sp-bar-pct">{% widthratio s.interested s.total 100 %}%</span>
+        </div>
+        <div class="sp-bar-row">
+          <span class="sp-bar-label">Not Interested</span>
+          <div class="sp-bar-track">
+            <div class="sp-bar-fill fill-red" style="width:{% widthratio s.not_interested s.total 100 %}%"></div>
+          </div>
+          <span class="sp-bar-pct">{% widthratio s.not_interested s.total 100 %}%</span>
+        </div>
+        <div class="sp-bar-row">
+          <span class="sp-bar-label">Scheduled</span>
+          <div class="sp-bar-track">
+            <div class="sp-bar-fill fill-orange" style="width:{% widthratio s.scheduled s.total 100 %}%"></div>
+          </div>
+          <span class="sp-bar-pct">{% widthratio s.scheduled s.total 100 %}%</span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <h3>No data yet</h3>
+      <p>No clients have been added to the system.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

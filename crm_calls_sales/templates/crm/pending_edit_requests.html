@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}طلبات التعديل المعلقة — CRM{% endblock %}
+{% block page_title %}⏳ طلبات التعديل المعلقة{% endblock %}
+
+{% block content %}
+<div class="stats-grid" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_pending }}</div>
+    <div class="stat-label">طلبات معلقة</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">الطلبات التي تحتاج موافقتك</span>
+    <a href="{% url 'leader_dashboard' %}" class="btn btn-outline btn-sm">← لوحة التحكم</a>
+  </div>
+  <div class="card-body">
+    {% if pending_requests %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>مقدم الطلب</th>
+              <th>العميل</th>
+              <th>تاريخ الطلب</th>
+              <th>السبب</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for request in pending_requests %}
+            <tr>
+              <td>
+                <strong>{{ request.requested_by.get_full_name|default:request.requested_by.username }}</strong>
+              </td>
+              <td>
+                <strong>{{ request.client_name }}</strong><br>
+                <small style="color:#64748b;">ID: {{ request.client_id }}</small>
+              </td>
+              <td>{{ request.created_at|date:"Y-m-d H:i" }}</td>
+              <td>
+                {% if request.reason %}
+                  <div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    {{ request.reason|truncatewords:10 }}
+                  </div>
+                {% else %}
+                  <span style="color:#94a3b8;">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:8px;">
+                  <a href="{% url 'view_edit_request' request.id %}" class="btn btn-sm btn-outline">
+                    👁️ عرض
+                  </a>
+                  <form method="post" action="{% url 'approve_edit_request' request.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('هل أنت متأكد من الموافقة على هذا الطلب؟')">
+                      ✅ موافقة
+                    </button>
+                  </form>
+                  <form method="post" action="{% url 'reject_edit_request' request.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من رفض هذا الطلب؟')">
+                      ❌ رفض
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align:center;padding:60px 20px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:16px;">✅</div>
+        <div style="font-size:16px;font-weight:500;margin-bottom:8px;">لا توجد طلبات معلقة</div>
+        <div style="font-size:14px;">جميع الطلبات تمت معالجتها</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

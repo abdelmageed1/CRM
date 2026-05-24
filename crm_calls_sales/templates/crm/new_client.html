@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit %}Edit Client{% else %}New Client{% endif %} — CRM{% endblock %}
+{% block page_title %}{% if edit %}✏️ Edit Client{% else %}➕ New Client{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:1000px;margin:0 auto;">
+  <div class="card-header">
+    <span class="card-title">{% if edit %}Edit: {{ client.client_name }}{% else %}Register New Client{% endif %}</span>
+    <a href="{% url 'clients' %}" class="btn btn-outline btn-sm">← Back</a>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      
+     
+
+      {% if edit and is_sales %}
+      <!-- تنبيه واضح للسيلز في الأعلى -->
+    <div style="
+    background: linear-gradient(135deg,#fef3c7,#fffbeb);
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    direction: rtl;
+    text-align: right;
+">
+
+    <div style="
+        flex: 1;
+        width: 100%;
+    ">
+
+        <div style="
+            font-size: 16px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 10px;
+        ">
+            تنبيه: لن يتم الحفظ مباشرة!
+        </div>
+
+        <div style="
+            font-size: 14px;
+            color: #78350f;
+            line-height: 2;
+            width: 100%;
+        ">
+            بصفتك <strong>موظف مبيعات (Sales)</strong>،
+            لا يمكنك تعديل بيانات العميل مباشرة.<br>
+
+            سيتم <strong>إرسال طلب تعديل</strong>
+            إلى المدير (Leader) للمراجعة والموافقة عليه.<br>
+
+            ستجد طلبك في صفحة
+            <a href="{% url 'my_edit_requests' %}"
+               style="
+                   color:#b45309;
+                   font-weight:600;
+                   text-decoration:underline;
+               ">
+               طلباتي 📋
+            </a>
+            بعد الإرسال.
+        </div>
+
+    </div>
+
+    <div style="
+        font-size: 32px;
+        line-height: 1;
+        flex-shrink: 0;
+    ">
+        ⚠️
+    </div>
+
+</div>      {% endif %}
+
+      <div class="form-grid">
+      
+   
+
+        <!-- Lead Owner -->
+        <div class="form-group">
+          <label class="form-label" >Lead Owner <span class="required">*</span></label>
+          {{ form.lead_owner }}
+          {% if form.lead_owner.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.lead_owner.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label class="form-label">📱 Phone Number <span class="required">*</span></label>
+          {{ form.phone_number }}
+          {% if form.phone_number.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.phone_number.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Client Code -->
+        <div class="form-group">
+          <label class="form-label">🔢 Client Code <span class="required">*</span></label>
+          {{ form.client_code }}
+          {% if form.client_code.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.client_code.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Client Name -->
+        <div class="form-group">
+          <label class="form-label">👤 Client Name <span class="required">*</span></label>
+          {{ form.client_name }}
+          {% if form.client_name.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.client_name.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Project Name -->
+        <div class="form-group">
+          <label class="form-label">🏗️ Project Name <span class="required">*</span></label>
+          {{ form.project_name }}
+          {% if form.project_name.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.project_name.errors.0 }}</span>{% endif %}
+        </div>
+ 
+        <!-- Project unit -->
+        <div class="form-group">
+          <label id="project_unit_label" class="form-label">🏗️ Project unit <span class="required">*</span></label>
+          {{ form.project_unit }}
+          {% if form.project_unit.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.project_unit.errors.0 }}</span>{% endif %}
+        </div>
+        <!-- Date -->
+        <div class="form-group">
+          <label class="form-label">📅 Date <span class="required">*</span></label>
+          {{ form.date }}
+          {% if form.date.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.date.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">📧 Email Address <span class="required">*</span></label>
+          {{ form.email_address }}
+          {% if form.email_address.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.email_address.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+          <label class="form-label">📊 Status <span class="required">*</span></label>
+          {{ form.status }}
+          {% if form.status.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.status.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+          <label class="form-label">📍 Location <span class="required">*</span></label>
+          {{ form.location }}
+          {% if form.location.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.location.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Type (Optional) -->
+        <div class="form-group">
+          <label class="form-label">🏢 Type</label>
+          {{ form.type }}
+          {% if form.type.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.type.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Broker Name (Optional) -->
+        <div class="form-group">
+          <label class="form-label">🤝 Broker Name</label>
+          {{ form.broker_name }}
+          {% if form.broker_name.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.broker_name.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Notes (Optional) -->
+        <div class="form-group full-width">
+          <label class="form-label">📝 Notes</label>
+          {{ form.notes }}
+          {% if form.notes.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.notes.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Manager Comments (Optional) -->
+        <div class="form-group full-width">
+          <label class="form-label">💬 Manager Comments</label>
+          {{ form.manager_comments }}
+          {% if form.manager_comments.errors %}<span style="color:var(--danger);font-size:12px;">{{ form.manager_comments.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Reason for Edit (Sales only, mandatory) -->
+        {% if edit and is_sales %}
+        <div class="form-group full-width">
+          <label class="form-label" style="color:#b45309;">
+            📋 سبب طلب التعديل <span class="required">*</span>
+          </label>
+          <textarea name="reason" class="form-control" rows="3"
+            placeholder="مثال: العميل أصبح مهتماً بالمشروع ويريد جدولة اجتماع، لذا أريد تغيير حالته من 'غير مهتم' إلى 'مهتم'..."
+            required
+            style="border-color:#f59e0b;"></textarea>
+          <small style="color:#78350f;font-size:12px;font-weight:500;">
+            ⚠️ هذا الحقل إلزامي — اشرح للمدير سبب التعديل المطلوب بوضوح
+          </small>
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
+        <a href="{% url 'clients' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-accent" style="{% if edit and is_sales %}background:linear-gradient(135deg,#f59e0b,#d97706);{% endif %}">
+          {% if edit %}
+            {% if is_sales %}📤 إرسال طلب التعديل للمدير{% else %}💾 Save Changes{% endif %}
+          {% else %}
+            ✅ Register Client
+          {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+(function(){
+  function $(s){return document.querySelector(s)}
+  var projectSelect = document.querySelector('select[name="project_name"]');
+  var unitLabel = document.getElementById('project_unit_label');
+  var unitInput = document.querySelector('[name="project_unit"]');
+  function updateLabel(){
+    if(!projectSelect || !unitLabel || !unitInput) return;
+    if(projectSelect.value === 'other' || projectSelect.value === ''){
+      unitLabel.innerHTML = '🏗️ Project Name (full details) <span class="required">*</span>';
+      unitInput.placeholder = 'Enter full project name and details';
+    } else {
+      unitLabel.innerHTML = '🏗️ Project unit <span class="required">*</span>';
+      unitInput.placeholder = 'Project unit ';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', updateLabel);
+  if(projectSelect) projectSelect.addEventListener('change', updateLabel);
+})();
+</script>
+{% endblock %}

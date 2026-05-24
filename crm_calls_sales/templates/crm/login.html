@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — CRM System</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="login-body">
+
+<div class="login-left">
+  <div class="login-brand">
+    <div class="login-brand-icon">📞</div>
+    <h1>CRM System</h1>
+    <p>Calls & Response Management</p>
+  </div>
+</div>
+
+<div class="login-right">
+  <div class="login-form-wrap">
+    <h2>Welcome Back 👋</h2>
+    <p class="subtitle">Sign in to access your CRM dashboard</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-error">⚠️ {{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="login-form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter your username" required autofocus>
+      </div>
+      <div class="login-form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter your password" required>
+      </div>
+      <button type="submit" class="login-btn">🔐 Sign In</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

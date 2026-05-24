@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Home Gate Construction CRM System {% endblock %}</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📞</div>
+    <div class="logo-text">
+     HGC CRM System
+      <span>Calls &amp; Response</span>
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">{{ request.user.username|default:"?"|first|upper }}</div>
+    <div class="user-info">
+      <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+      <div class="user-role role-{{ request.user.role }}">{{ request.user.get_role_display|default:"Guest" }}</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main Menu</div>
+
+    {% if request.user.is_sales_leader %}
+      {# ---- Leader menu ---- #}
+      <a href="{% url 'leader_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'leader_dashboard' %}active{% endif %}">
+        <span class="nav-icon">🏆</span> Leader Dashboard
+      </a>
+      <a href="{% url 'clients' %}" class="nav-item {% if request.resolver_match.url_name == 'clients' %}active{% endif %}">
+        <span class="nav-icon">👥</span> All Clients
+      </a>
+      <a href="{% url 'new_client' %}" class="nav-item {% if request.resolver_match.url_name == 'new_client' %}active{% endif %}">
+        <span class="nav-icon">➕</span> New Client
+      </a>
+      <a href="{% url 'edit_requests_log' %}" class="nav-item {% if request.resolver_match.url_name == 'edit_requests_log' %}active{% endif %}">
+        <span class="nav-icon">📋</span> سجل التعديلات
+      </a>
+      <a href="{% url 'pending_edit_requests' %}" class="nav-item {% if request.resolver_match.url_name == 'pending_edit_requests' %}active{% endif %}">
+        <span class="nav-icon">⏳</span> طلبات معلقة
+      </a>
+    {% elif request.user.is_sales %}
+      {# ---- Sales menu ---- #}
+      <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <a href="{% url 'new_client' %}" class="nav-item {% if request.resolver_match.url_name == 'new_client' %}active{% endif %}">
+        <span class="nav-icon">➕</span> New Client
+      </a>
+      <a href="{% url 'clients' %}" class="nav-item {% if request.resolver_match.url_name == 'clients' %}active{% endif %}">
+        <span class="nav-icon">👥</span> My Clients
+      </a>
+      <a href="{% url 'my_edit_requests' %}" class="nav-item {% if request.resolver_match.url_name == 'my_edit_requests' %}active{% endif %}">
+        <span class="nav-icon">📋</span> My Requests
+      </a>
+    {% elif request.user.is_manager %}
+      {# ---- Manager menu ---- #}
+      <a href="{% url 'manager:dashboard' %}" class="nav-item {% if request.resolver_match.namespaces.0 == 'manager' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Manager Dashboard
+      </a>
+    {% elif request.user.is_accountant %}
+      {# ---- Accountant menu ---- #}
+      <a href="{% url 'accountant:dashboard' %}" class="nav-item {% if request.resolver_match.namespaces.0 == 'accountant' %}active{% endif %}">
+        <span class="nav-icon">💰</span> Accountant Dashboard
+      </a>
+    {% elif request.user.is_designer %}
+      {# ---- Designer menu ---- #}
+      <a href="{% url 'designer:dashboard' %}" class="nav-item {% if request.resolver_match.namespaces.0 == 'designer' %}active{% endif %}">
+        <span class="nav-icon">🎨</span> Designer Dashboard
+      </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="{% url 'logout' %}" class="logout-btn">
+      <span>🚪</span> Logout
+    </a>
+  </div>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-right">
+    
+      <div class="topbar-badge">👤 {{ request.user.get_full_name|default:request.user.username }}</div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+        {% if message.tags == 'error' %}⚠️{% else %}✅{% endif %} {{ message }}
+      </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+</body>
+</html>
